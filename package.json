@@ -1,0 +1,23 @@
+{
+    "name": "jig",
+    "description": "Jenkins-IRC-Github integration.",
+    "version": "0.1.0",
+    "author": {
+        "name": "James Socol",
+        "email": "james@mozilla.com",
+        "url": "http://coffeeonthekeyboard.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jsocol/jig.git"
+    },
+    "dependencies": {
+        "nomnom": ">=0.4.2",
+        "irc": ">=0.2.0",
+        "daemon": ">=0.3.0",
+        "inireader": ">=0.2.0"
+    },
+    "bin": {
+        "jig": "./jig.js"
+    }
+}
