@@ -111,15 +111,19 @@ var server = http.createServer(function(req, res) {
             if (CONFIG.http.auth) {
                 headers['Authorization'] = CONFIG.http.auth;
             }
-            web.get({
-                host: JENKINS,
-                path: ref.path + '?' + qs.stringify(q),
-                headers: headers
-            }, function(res) {
-                console.log(res.statusCode + ': ' + ref.path + '?' + qs.stringify(q));
-            }).on('error', function(err) {
-                console.log(err);
-            });
+            // We wrap this in a setTimeout to give downstream repos
+            // time to sync with github.
+            setTimeout(function() {
+                web.get({
+                    host: JENKINS,
+                    path: ref.path + '?' + qs.stringify(q),
+                    headers: headers
+                }, function(res) {
+                    console.log(res.statusCode + ': ' + ref.path + '?' + qs.stringify(q));
+                }).on('error', function(err) {
+                    console.log(err);
+                });
+            }, 5000);
         }
     });
 });
