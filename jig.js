@@ -11,7 +11,10 @@ var http = require('http'),
         }
     }).parseArgs(),
     daemon = require('daemon'),
-    IniReader = require('inireader').IniReader;
+    IniReader = require('inireader').IniReader,
+    GitHubApi = require('github').GitHubApi,
+    github = new GitHubApi(),
+    PULLREQRE = /pull\s+(?:req\s+)?#?(\d+)/i;
 
 inireader = new IniReader();
 inireader.load(options.config);
@@ -24,7 +27,7 @@ var CHANNELS = CONFIG.irc.channels.split(','),
     IRCHOST = CONFIG.irc.server,
     IRCNICK = CONFIG.irc.nick;
 
-CHANNELS.forEach(function(i, c) {
+CHANNELS.forEach(function(c, i) {
     CHANNELS[i] = c.trim();
 });
 
@@ -45,9 +48,39 @@ function interpolate(fmt, obj, named) {
 var client = new irc.Client(IRCHOST, IRCNICK, {
     channels: CHANNELS
 }).on('error', function(err) {
-    if (err.rawCommand != '421')
+    if (err.rawCommand != '421') {
         console.log(err);
+        if (err.hasOwnProperty('stack')) {
+            console.log(err.stack);
+        }
+    }
 });
+
+
+var response = '\00303#%(number)s\003 - \00307%(title)s\003 - %(url)s';
+client.on('message', function(from, to, msg) {
+    if (to.indexOf('#') != 0) return;
+    msg = msg.toLowerCase();
+    if (msg.indexOf(IRCNICK) == 0 && /botsnack\s*$/i.test(msg)) {
+        client.say(to, 'YUMMY');
+    } else if (PULLREQRE.test(msg)) {
+        var m = PULLREQRE.exec(msg);
+        github.getPullApi().show(CONFIG.github.user, CONFIG.github.repo, m[1], function(err, pull) {
+            if (err || !pull) {
+                console.log(err);
+                return;
+            }
+            client.say(
+                to,
+                interpolate(response, {
+                    'number': pull.number,
+                    'title': pull.title,
+                    'url': pull.html_url
+                }, true));
+        });
+    }
+});
+
 
 var server = http.createServer(function(req, res) {
     if (req.method != 'POST') {

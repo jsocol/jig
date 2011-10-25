@@ -2,4 +2,4 @@
 *.pid
 pid
 node_modules
-*.ini
+config.ini
