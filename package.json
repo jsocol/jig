@@ -1,7 +1,7 @@
 {
     "name": "jig",
     "description": "Jenkins-IRC-Github integration.",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "author": {
         "name": "James Socol",
         "email": "james@mozilla.com",
