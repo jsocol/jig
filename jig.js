@@ -139,7 +139,7 @@ var server = http.createServer(function(req, res) {
             var web = http,
                 headers = {};
             if (CONFIG.http.ssl == 'yes') {
-                client = https;
+                web = https;
             }
             if (CONFIG.http.auth) {
                 headers['Authorization'] = CONFIG.http.auth;
