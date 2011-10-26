@@ -14,7 +14,8 @@ var http = require('http'),
     IniReader = require('inireader').IniReader,
     GitHubApi = require('github').GitHubApi,
     github = new GitHubApi(),
-    PULLREQRE = /pull\s+(?:req\s+)?#?(\d+)/i;
+    PULLREQRE = /pull\s+(?:req\s+)?#?(\d+)/i,
+    TAGRE = /\/tags\/(.+)$/i;
 
 inireader = new IniReader();
 inireader.load(options.config);
@@ -157,6 +158,13 @@ var server = http.createServer(function(req, res) {
                     console.log(err);
                 });
             }, 5000);
+        } else if (TAGRE.test(data.ref)) {
+            var m = TAGRE.exec(data.ref),
+                tag = '\002New Tag:\002 \00312%(tag)s\003 pushed by \00303%(pusher)s\003',
+                tagMsg = interpolate(tag, {'tag': m[1], 'pusher': data.pusher.name}, true);
+            CHANNELS.forEach(function(c) {
+                client.say(c, tagMsg);
+            });
         }
     });
 });
