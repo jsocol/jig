@@ -118,7 +118,7 @@ var server = http.createServer(function(req, res) {
                 }, true),
                 commitMsgs = [];
 
-            if (ref.commits) {
+            if (ref.commits && ref.commits.toLowerCase() == 'yes') {
                 data.commits.forEach(function(c) {
                     commitMsgs.push(interpolate(commit, {
                         'author': c.author.username,
