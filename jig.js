@@ -95,6 +95,8 @@ var server = http.createServer(function(req, res) {
         payload += d;
     });
     req.on('end', function() {
+        res.statusCode = 200;
+        res.end();
         try {
             var post, data;
             post = qs.parse(payload);
