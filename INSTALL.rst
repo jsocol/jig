@@ -17,22 +17,7 @@ Run ``npm install .`` to pull in the dependencies::
 
     $ npm install .
 
-Now here's the tricky bit: until a pull request gets merged, you need to use my
-fork of node-github_, which implements part of the API that isn't in the main
-repo yet.
-
-This is what I did, you can probably do better::
-
-    $ cd node_modules
-    $ mv github/node_modules ./
-    $ rm -rf github
-    $ git clone https://github.com/jsocol/node-github github
-    $ mv node_modules github/
-    $ cd ..
-
 That should do it!
-
-Once that pull-req_ gets merged, things will be much simpler.
 
 
 Configuring

@@ -16,7 +16,7 @@
         "irc": ">=0.2.0",
         "daemon": ">=0.3.0",
         "inireader": ">=0.2.0",
-        "github": ">=0.0.6"
+        "github": ">=0.0.7",
     },
     "bin": {
         "jig": "./jig.js"
