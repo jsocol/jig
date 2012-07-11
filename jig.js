@@ -1,4 +1,3 @@
-require.paths.unshift('./node_modules');
 var http = require('http'),
     https = require('https'),
     qs = require('querystring'),
@@ -12,8 +11,8 @@ var http = require('http'),
     }).parseArgs(),
     daemon = require('daemon'),
     IniReader = require('inireader').IniReader,
-    GitHubApi = require('github').GitHubApi,
-    github = new GitHubApi(),
+    GitHubApi = require('github'),
+    github = new GitHubApi({version: "3.0.0"}),
     PULLREQRE = /pull\s+(?:req\s+)?#?(\d+)/i,
     TAGRE = /\/tags\/(.+)$/i;
 
@@ -66,7 +65,7 @@ client.on('message', function(from, to, msg) {
         client.say(to, 'YUMMY');
     } else if (PULLREQRE.test(msg)) {
         var m = PULLREQRE.exec(msg);
-        github.getPullApi().show(CONFIG.github.user, CONFIG.github.repo, m[1], function(err, pull) {
+        github.pullRequests.get({user: CONFIG.github.user, repo: CONFIG.github.repo, number: m[1]}, function(err, pull) {
             if (err || !pull) {
                 console.log(err);
                 return;
