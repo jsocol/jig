@@ -63,6 +63,8 @@ client.on('message', function(from, to, msg) {
     msg = msg.toLowerCase();
     if (msg.indexOf(IRCNICK) == 0 && /botsnack\s*$/i.test(msg)) {
         client.say(to, 'YUMMY');
+    } else if (msg.indexOf(IRCNICK) == 0 && /thanks/i.test(msg)) {
+        client.say(to, 'no problem!');
     } else if (PULLREQRE.test(msg)) {
         var m = PULLREQRE.exec(msg);
         github.pullRequests.get({user: CONFIG.github.user, repo: CONFIG.github.repo, number: m[1]}, function(err, pull) {
