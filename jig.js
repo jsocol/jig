@@ -91,8 +91,10 @@ client.on('message', function(from, to, msg) {
                 console.log(err);
                 return;
             }
-            pulls.forEach(function(pull) {
-                printPullReq(to, pull);
+            pulls.forEach(function(pull, i) {
+                setTimeout(function() {
+                    printPullReq(to, pull);
+                }, i * 100);
             });
         });
     } else if (PULLREQRE.test(msg)) {
