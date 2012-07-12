@@ -20,12 +20,21 @@ inireader = new IniReader();
 inireader.load(options.config);
 var CONFIG = inireader.getBlock();
 
+function interpolate(fmt, obj, named) {
+    if (named) {
+        return fmt.replace(/%\(\w+\)s/g, function(match){return String(obj[match.slice(2,-2)])});
+    } else {
+        return fmt.replace(/%s/g, function(match){return String(obj.shift())});
+    }
+}
 
 var CHANNELS = CONFIG.irc.channels.split(','),
     BRANCHES = {},
     JENKINS =  CONFIG.http.jenkins,
     IRCHOST = CONFIG.irc.server,
-    IRCNICK = CONFIG.irc.nick;
+    IRCNICK = CONFIG.irc.nick,
+    PULLURL = interpolate('https?://github\\.com/%s/%s/pull/(\\d+)', [CONFIG.github.user, CONFIG.github.repo]),
+    PULLURLRE = new RegExp(PULLURL, 'i');
 
 CHANNELS.forEach(function(c, i) {
     CHANNELS[i] = c.trim();
@@ -35,14 +44,6 @@ for (var br in CONFIG.branches) {
     var ref = CONFIG.branches[br];
     BRANCHES[ref] = CONFIG['branch:' + br];
     BRANCHES[ref].name = br;
-}
-
-function interpolate(fmt, obj, named) {
-    if (named) {
-        return fmt.replace(/%\(\w+\)s/g, function(match){return String(obj[match.slice(2,-2)])});
-    } else {
-        return fmt.replace(/%s/g, function(match){return String(obj.shift())});
-    }
 }
 
 var client = new irc.Client(IRCHOST, IRCNICK, {
@@ -72,6 +73,7 @@ function printPullReq(to, pull) {
 }
 
 client.on('message', function(from, to, msg) {
+    if (from == IRCNICK) return;  // Don't answer yourself.
     if (to.indexOf('#') != 0) return;
     msg = msg.toLowerCase();
     if (msg.indexOf(IRCNICK) == 0 && /botsnack\s*$/i.test(msg)) {
@@ -79,15 +81,42 @@ client.on('message', function(from, to, msg) {
     } else if (msg.indexOf(IRCNICK) == 0 && /thanks/i.test(msg)) {
         client.say(to, 'no problem!');
     } else if (msg.indexOf(IRCNICK) == 0 && /pulls\s*$/i.test(msg)) {
-        var requester = {user: CONFIG.github.user, repo: CONFIG.github.repo, state: 'open'};
+        var requester = {
+            user: CONFIG.github.user,
+            repo: CONFIG.github.repo,
+            state: 'open'
+        };
         github.pullRequests.getAll(requester, function(err, pulls) {
+            if (err || !pulls) {
+                console.log(err);
+                return;
+            }
             pulls.forEach(function(pull) {
                 printPullReq(to, pull);
             });
         });
     } else if (PULLREQRE.test(msg)) {
         var m = PULLREQRE.exec(msg),
-            requester = {user: CONFIG.github.user, repo: CONFIG.github.repo, number: m[1]};
+            requester = {
+                user: CONFIG.github.user,
+                repo: CONFIG.github.repo,
+                number: m[1]
+            };
+        github.pullRequests.get(requester, function(err, pull) {
+            if (err || !pull) {
+                console.log(err);
+                return;
+            }
+            printPullReq(to, pull);
+        });
+    } else if (PULLURLRE.test(msg)) {
+        var m = PULLURLRE.exec(msg);
+        if (!m) return;
+        var requester = {
+                user: CONFIG.github.user,
+                repo: CONFIG.github.repo,
+                number: m[1]
+            };
         github.pullRequests.get(requester, function(err, pull) {
             if (err || !pull) {
                 console.log(err);
