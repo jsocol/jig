@@ -57,7 +57,7 @@ var client = new irc.Client(IRCHOST, IRCNICK, {
 });
 
 
-var response = '\00307#%(number)s\003 - \00303%(user)s\003 - %(title)s - %(url)s';
+var response = '\00307#%(number)s\003 - \002%(state)s\002 - \00303%(user)s\003 - %(title)s - %(url)s';
 client.on('message', function(from, to, msg) {
     if (to.indexOf('#') != 0) return;
     msg = msg.toLowerCase();
@@ -78,7 +78,8 @@ client.on('message', function(from, to, msg) {
                     'number': pull.number,
                     'title': pull.title,
                     'url': pull.html_url,
-                    'user': pull.user.name
+                    'user': pull.user.login,
+                    'state': pull.state.toUpperCase()
                 }, true));
         });
     }
