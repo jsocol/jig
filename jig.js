@@ -58,6 +58,19 @@ var client = new irc.Client(IRCHOST, IRCNICK, {
 
 
 var response = '\00307#%(number)s\003 - \002%(state)s\002 - \00303%(user)s\003 - %(title)s - %(url)s';
+
+function printPullReq(to, pull) {
+    client.say(
+        to,
+        interpolate(response, {
+            'number': pull.number,
+            'title': pull.title,
+            'url': pull.html_url,
+            'user': pull.user.login,
+            'state': pull.state.toUpperCase()
+        }, true));
+}
+
 client.on('message', function(from, to, msg) {
     if (to.indexOf('#') != 0) return;
     msg = msg.toLowerCase();
@@ -65,22 +78,22 @@ client.on('message', function(from, to, msg) {
         client.say(to, 'YUMMY');
     } else if (msg.indexOf(IRCNICK) == 0 && /thanks/i.test(msg)) {
         client.say(to, 'no problem!');
+    } else if (msg.indexOf(IRCNICK) == 0 && /pulls\s*$/i.test(msg)) {
+        var requester = {user: CONFIG.github.user, repo: CONFIG.github.repo, state: 'open'};
+        github.pullRequests.getAll(requester, function(err, pulls) {
+            pulls.forEach(function(pull) {
+                printPullReq(to, pull);
+            });
+        });
     } else if (PULLREQRE.test(msg)) {
-        var m = PULLREQRE.exec(msg);
-        github.pullRequests.get({user: CONFIG.github.user, repo: CONFIG.github.repo, number: m[1]}, function(err, pull) {
+        var m = PULLREQRE.exec(msg),
+            requester = {user: CONFIG.github.user, repo: CONFIG.github.repo, number: m[1]};
+        github.pullRequests.get(requester, function(err, pull) {
             if (err || !pull) {
                 console.log(err);
                 return;
             }
-            client.say(
-                to,
-                interpolate(response, {
-                    'number': pull.number,
-                    'title': pull.title,
-                    'url': pull.html_url,
-                    'user': pull.user.login,
-                    'state': pull.state.toUpperCase()
-                }, true));
+            printPullReq(to, pull);
         });
     }
 });
