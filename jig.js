@@ -22,6 +22,9 @@ var CONFIG = inireader.getBlock();
 
 function envReplace(obj) {
     for (var key in obj) {
+        if (!obj.hasOwnProperty(key)) {
+            break;
+        }
         val = obj[key];
         if (typeof(val) === 'object') {
             envReplace(val);
