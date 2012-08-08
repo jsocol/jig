@@ -20,6 +20,20 @@ inireader = new IniReader();
 inireader.load(options.config);
 var CONFIG = inireader.getBlock();
 
+function envReplace(obj) {
+    for (var key in obj) {
+        val = obj[key];
+        if (typeof(val) === 'object') {
+            envReplace(val);
+        } else if (typeof(val) === 'string') {
+            if (val[0] === '$') {
+                obj[key] = process.env[val.slice(1)];
+            }
+        }
+    }
+}
+envReplace(CONFIG);
+
 function interpolate(fmt, obj, named) {
     if (named) {
         return fmt.replace(/%\(\w+\)s/g, function(match){return String(obj[match.slice(2,-2)])});
